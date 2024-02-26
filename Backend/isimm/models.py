@@ -1,5 +1,4 @@
-
-
+from datetime import date
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -50,12 +49,12 @@ class Department(models.Model):
         return self.name
     
 class Teacher(models.Model):
-    name = models.CharField(max_length=255)
+    first_name= models.CharField(max_length=255)
+    last_name= models.CharField(max_length=255)
     qualification = models.CharField(max_length=255)
-    joining_date = models.DateTimeField(auto_now_add=True)
+    joining_date = models.DateField(default=date.today)
     contact_details = models.EmailField()
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    
 
     def __str__(self):
         return self.name

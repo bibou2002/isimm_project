@@ -1,17 +1,33 @@
+from rest_framework.response import Response
 from django.shortcuts import render
 from rest_framework import generics
 from isimm.models import Article, Club #, Matiere, Department, Enseignant, Formation'''
 from .serializers import ArticleSerializer, ClubSerializer#, DepartmentSerializer, EnseignantSerializer, FormationSerializer, MatiereSerializer
-from isimm.models import Department, Teacher, Subject
-from .serializers import DepartmentSerializer, TeacherSerializer, SubjectSerializer
-
+from isimm.models import Department, Subject, Teacher
+from .serializers import DepartmentSerializer, SubjectSerializer,TeacherSerializer
+from rest_framework.permissions import SAFE_METHODS,  BasePermission, IsAdminUser , DjangoModelPermissionsOrAnonReadOnly
 # Create your views here.
 
+class PostUserWritePermission(BasePermission):
+    message = 'editing posts is restricted to the author only'
+
+    # it called object bc we instance of user we are cheking
+    def has_object_permission(self, request, view, obj):
+
+        if request.method in SAFE_METHODS: #Safe methode for read only 
+            return True
+        
+        return obj.author == request.user #he can do update and add
+
+        
+
 class ActList(generics.ListCreateAPIView):
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
 
-class ActDetail(generics.RetrieveDestroyAPIView):
+class ActDetail(generics.RetrieveUpdateDestroyAPIView, PostUserWritePermission):
+    permission_classes = [PostUserWritePermission]
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
 
@@ -44,6 +60,7 @@ class DepartmentDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
 
+
 # Teacher Views
 class TeacherList(generics.ListCreateAPIView):
     """
@@ -51,6 +68,22 @@ class TeacherList(generics.ListCreateAPIView):
     """
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        # Modify response to include department name
+        for item in data:
+            department_id = item.get('department')
+            department = Department.objects.filter(id=department_id).first()
+            if department:
+                item['department_name'] = department.name
+            else:
+                item['department_name'] = None
+
+        return Response(data)
 
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -58,6 +91,7 @@ class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
+
 
 # Subject Views
 class SubjectList(generics.ListCreateAPIView):
@@ -75,39 +109,7 @@ class SubjectDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SubjectSerializer
 
 
-'''class DepartmentDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Department.objects.all()
-    serializer_class = DepartmentSerializer
 
-class DepartmentList(generics.ListCreateAPIView):
-    queryset = Department.objects.all()
-    serializer_class = DepartmentSerializer
-
-class EnseignantDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Enseignant.objects.all()
-    serializer_class = EnseignantSerializer
-
-class EnseignantList(generics.ListCreateAPIView):
-    queryset = Enseignant.objects.all()
-    serializer_class = EnseignantSerializer
-
-class FormationDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Formation.objects.all()
-    serializer_class = FormationSerializer
-
-class FormationList(generics.ListCreateAPIView):
-    queryset = Formation.objects.all()
-    serializer_class = FormationSerializer
-
-class MatiereDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Matiere.objects.all()
-    serializer_class = MatiereSerializer
-
-class MatiereList(generics.ListCreateAPIView):
-    queryset = Matiere.objects.all()
-    serializer_class = MatiereSerializer
-    
-'''
 class ClubDetail(generics.RetrieveDestroyAPIView):
     queryset = Club.objects.all()
     serializer_class = ClubSerializer

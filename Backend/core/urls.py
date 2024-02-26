@@ -21,5 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/',include('isimm_api.urls', namespace='isimm_api')),
     path('',include('isimm.urls', namespace='isimm')),
-    
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+
 ]

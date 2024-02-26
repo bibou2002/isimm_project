@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import ActList, ActDetail, EventDetail, EventList, ClubDetail , ClubList, DepartmentDetail
-from .views import DepartmentList,TeacherList,TeacherDetail,SubjectList,SubjectDetail
+from .views import DepartmentList,SubjectList,SubjectDetail,TeacherDetail,TeacherList
 
 app_name='isimm_api'
 
@@ -20,7 +20,7 @@ urlpatterns = [
 
     # Teacher endpoints
     path('teacher/', TeacherList.as_view(), name='teacher-list'),
-    path('teacher/<int:pk>/', TeacherDetail.as_view(), name='teacher-detail'),
+    path('teacher/<int:pk>/', TeacherDetail.as_view(), name='teacher-detail'),                  
 
     # Subject endpoints
     path('subject/', SubjectList.as_view(), name='subject-list'),
